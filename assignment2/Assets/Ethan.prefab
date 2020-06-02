@@ -1890,6 +1890,7 @@ GameObject:
   - component: {fileID: 7486442137739326143}
   - component: {fileID: 7486442137739326142}
   - component: {fileID: 7486442137739326141}
+  - component: {fileID: 2052399974852151266}
   m_Layer: 0
   m_Name: Ethan
   m_TagString: Untagged
@@ -1980,6 +1981,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75e7913828af19e4299dd4131af0a385, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!65 &2052399974852151266
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7486442137673393035}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &7486442137673393037
 GameObject:
   m_ObjectHideFlags: 0
