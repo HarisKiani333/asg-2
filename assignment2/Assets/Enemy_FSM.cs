@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.AI;
 
 
 public class Enemy_FSM : MonoBehaviour
@@ -40,25 +40,32 @@ public class Enemy_FSM : MonoBehaviour
 
         }
     }
-    private CheckMyVision checkVision;
+    private CheckMyVision checkMyVision;
     private UnityEngine.AI.NavMeshAgent agent = null;
     private Transform playerTransform = null;
     private Transform patrolDestination = null;
 
+    private Health playerHealth = null;
+    public float maxDemage = 10f;
+
     private void Awake()
     {
-        checkVision = GetComponent<CheckMyVision>();
+        checkMyVision = GetComponent<CheckMyVision>();
         agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
-       
+        playerHealth = GameObject.FindGameObjectWithTag("Player").
+            GetComponent<Health>();
+        playerTransform = playerHealth.GetComponent<Transform>();
+
     }
 
     // Start is called before the first frame update
     void Start()
     {
         GameObject[] destinations = GameObject.FindGameObjectsWithTag("Dest");
+        int pathIndex = Random.Range(0, destinations.Length);
         patrolDestination = destinations[Random.Range(0, destinations.Length)].GetComponent<Transform>();
-
-        currentState = EMENY_STATE.PATROL;
+        //  print($"Path: {pathIndex}");
+        CurrentState = EMENY_STATE.PATROL;
 
     }
 
@@ -66,37 +73,79 @@ public class Enemy_FSM : MonoBehaviour
     {
         while (currentState == EMENY_STATE.PATROL)
         {
-            checkVision.Sensitity = CheckMyVision.enmSensitity.HIGH;
+            checkMyVision.Sensitity = CheckMyVision.enmSensitity.HIGH;
 
             agent.isStopped = false;
             agent.SetDestination(patrolDestination.position);
             while (agent.pathPending)
-            {
+
                 yield return null;
-            }
-            if (checkVision.targetInSight)
+
+            if (checkMyVision.targetInSight)
             {
                 agent.isStopped = true;
-                currentState = EMENY_STATE.CHASE;
+                CurrentState = EMENY_STATE.CHASE;
                 yield break;
             }
-            yield break;
+            yield return null;
         }
     }
     public IEnumerator EnemyChase()
     {
+        while (currentState == EMENY_STATE.CHASE)
+        {
+            checkMyVision.Sensitity = CheckMyVision.enmSensitity.LOW;
+            agent.isStopped = false;
+            agent.SetDestination(checkMyVision.lastKnownSighting);
+            while (agent.pathPending)
+            {
+                yield return null;
+            }
+            if (agent.remainingDistance <= agent.stoppingDistance)
+            {
+                agent.isStopped = true;
+                if (!checkMyVision.targetInSight)
+                {
+                    CurrentState = EMENY_STATE.PATROL;
+                }
+                else
+                {
+                    CurrentState = EMENY_STATE.ATTACK;
 
-
-        yield break;
+                }
+                yield break;
+            }
+            yield return null;
+        }
     }
+
+
     public IEnumerator EnemyAttack()
     {
+        while (currentState == EMENY_STATE.ATTACK)
+        {
+            Debug.Log("Attacking!");
+            agent.isStopped = false;
+            agent.SetDestination(playerTransform.position);
+            while (agent.pathPending)
+
+                yield return null;
+
+            if (agent.remainingDistance > agent.stoppingDistance)
+            {
+                CurrentState = EMENY_STATE.CHASE;
+                yield break;
+            }
+            else
+            {
+                playerHealth.HealthPoints -= maxDemage * Time.deltaTime;
+            }
+            yield return null;
+        }
+
         yield break;
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
 }
+
+
+
